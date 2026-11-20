@@ -40,7 +40,7 @@ export default {
         if (project.size > 18 * 1024 * 1024) return json({ error: "حداکثر حجم فایل پروژه در نسخه رایگان ۱۸ مگابایت است." }, 413);
         const appName = String(form.get("appName") || "My Web App").slice(0, 40);
         const packageId = String(form.get("packageId") || "");
-        if (!/^[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(packageId) || packageId.length > 180) {
+        if (!/^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(packageId) || packageId.length > 180) {
           return json({ error: "شناسه برنامه معتبر نیست." }, 400);
         }
         const id = randomId();
@@ -76,7 +76,7 @@ export default {
         }
         return json({ buildId: id, status: "queued" }, 202);
       }
-      const sourceMatch = url.pathname.match(/^\\/api\\/source\\/([a-f0-9]{32})$/);
+      const sourceMatch = url.pathname.match(/^\/api\/source\/([a-f0-9]{32})$/);
       if (sourceMatch && request.method === "GET") {
         const id = sourceMatch[1];
         const raw = await env.BUILDS.get(id);
@@ -103,7 +103,7 @@ export default {
         await env.BUILDS.put(body.build_id, JSON.stringify(item), { expirationTtl: 86400 });
         return json({ ok: true });
       }
-      const match = url.pathname.match(/^\\/api\\/build\\/([a-f0-9]{32})(\\/download)?$/);
+      const match = url.pathname.match(/^\/api\/build\/([a-f0-9]{32})(\/download)?$/);
       if (match && request.method === "GET") {
         const id = match[1];
         const raw = await env.BUILDS.get(id);
