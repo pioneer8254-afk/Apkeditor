@@ -6,7 +6,7 @@
 
 - رابط کاربری: `index.html`، پیش‌نمایش و آماده‌سازی پروژه در مرورگر.
 - API: Cloudflare Worker در `worker/src/index.js`.
-- ذخیره موقت سورس: Cloudflare R2 (فایل‌ها به‌صورت خصوصی ذخیره می‌شوند).
+- ذخیره موقت سورس: Cloudflare KV (بدون نیاز به R2؛ فایل سورس پس از callback حذف می‌شود).
 - صف و وضعیت: Cloudflare KV.
 - کامپایل واقعی: GitHub Actions workflow با نام `build-user-apk.yml`.
 - خروجی: APK آزمایشی Debug داخل Artifact کوتاه‌مدت؛ Worker آن را به کاربر تحویل می‌دهد.
@@ -17,19 +17,13 @@
 
 ### ۱) ساخت منابع Cloudflare
 
-1. یک حساب Cloudflare باز کن و از بخش R2 یک bucket خصوصی با نام `apkeditor-projects` بساز.
-2. از بخش Workers & Pages یک KV namespace بساز.
-3. شناسه KV را در `worker/wrangler.toml` جایگزین `REPLACE_WITH_KV_NAMESPACE_ID` کن.
-4. در ترمینال پوشه `worker` اجرا کن: `npm install` سپس `npx wrangler deploy`.
-5. در Cloudflare Worker → Settings → Variables and Secrets، متغیرها/Secrets زیر را اضافه کن:
+1. R2 لازم نیست. KV namespace با نام `apkeditor-build-status` ساخته شده و شناسه آن در `worker/wrangler.toml` ثبت شده است.
+2. در ترمینال پوشه `worker` اجرا کن: `npm install` سپس `npx wrangler deploy`.
+3. در Cloudflare Worker → Settings → Variables and Secrets، متغیرها/Secrets زیر را اضافه کن:
    - `GITHUB_TOKEN` (Secret): Fine-grained PAT با دسترسی Actions: Read and write و Metadata: Read برای مخزن APK Editor.
    - `GITHUB_REPOSITORY` (Variable): `pioneer8254-afk/Apkeditor`
    - `GITHUB_BRANCH` (Variable): `main`
-   - `R2_ACCOUNT_ID` (Variable): شناسه حساب Cloudflare
-   - `R2_ACCESS_KEY_ID` (Secret): کلید دسترسی R2
-   - `R2_SECRET_ACCESS_KEY` (Secret): کلید محرمانه R2
-   - `R2_BUCKET` (Variable): `apkeditor-projects`
-6. برای دسترسی R2، کلید با مجوز Object Read & Write فقط روی همین bucket بساز. bucket را Public نکن.
+
 
 ### ۲) اتصال رابط به Worker
 
@@ -52,8 +46,8 @@
 
 ## امنیت و محدودیت‌ها
 
-- محدودیت حجم ورودی: 25 MB؛ TTL داده وضعیت یک روز؛ Artifact خروجی یک روز.
-- سورس در R2 خصوصی ذخیره می‌شود. برای پاک‌سازی منظم، Lifecycle Rule روی bucket تنظیم کن تا اشیای `sources/` را بعد از ۱ روز حذف کند.
+- محدودیت حجم ورودی: 18 MiB؛ چون داده در KV به‌صورت Base64 ذخیره می‌شود و سقف هر مقدار KV برابر 25 MiB است. TTL داده‌ها یک روز است.
+- سورس پس از پایان build و callback از KV حذف می‌شود؛ در صورت توقف غیرمنتظره، TTL یک‌روزه پاک‌سازی می‌کند.
 - قبل از استفاده عمومی، روی Worker محدودیت نرخ (Rate Limiting) و کنترل سوءاستفاده فعال کن؛ API عمومی بدون محدودیت نرخ برای استفاده عمومی مناسب نیست.
 - فقط پروژه‌های وب قابل اعتماد را بساز. پروژه‌های وب پیچیده ممکن است به تنظیمات native یا افزونه‌های اختصاصی نیاز داشته باشند.
 - خروجی فعلی Debug APK است و برای نصب آزمایشی مناسب است.
