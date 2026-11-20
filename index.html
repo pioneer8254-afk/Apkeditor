@@ -81,7 +81,7 @@ $('buildBtn').addEventListener('click',async()=>{
     say('ساخت با موفقیت تمام شد. فایل APK آماده دریافت است.','good');
     const dl=await fetch(base.replace(/\/$/,'')+'/api/build/'+encodeURIComponent(buildId)+'/download');
     if(!dl.ok)throw Error('APK ساخته شد اما دریافت فایل ناموفق بود. دوباره تلاش کن.');
-    const file=await dl.blob(),url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download='apk-editor-build.zip';a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
+    const archive=await JSZip.loadAsync(await dl.blob());const apk=archive.file('app-debug.apk');if(!apk)throw Error('فایل APK داخل خروجی پیدا نشد.');const file=await apk.async('blob'),url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download='app-debug.apk';a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
     $('progressBar').style.width='100%';done=true;break;
    }
    if(state.status==='failed')throw Error(state.error||'ساخت APK ناموفق بود. لاگ اجرا را مدیر سرویس بررسی کند.');
