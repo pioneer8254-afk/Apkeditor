@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store","access-control-allow-origin":"*","access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"content-type"}});
@@ -25,7 +25,7 @@ export default {
     await env.BUILDS.put(id,JSON.stringify({status:"queued",createdAt:Date.now(),callbackSecret,sourceKey:key,appName,packageId}),{expirationTtl:86400});
     try{
      await github(env,`/repos/${env.GITHUB_REPOSITORY}/actions/workflows/build-user-apk.yml/dispatches`,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({ref:env.GITHUB_BRANCH||"main",inputs:{build_id:id,source_url:sourceUrl,callback_url:callbackUrl,callback_secret:callbackSecret}})});
-    }catch(e){await env.BUILDS.put(id,JSON.stringify({status:"failed",error:"ارسال درخواست به GitHub Actions ناموفق بود: "+e.message}),{expirationTtl:86400});return json({error:"سرویس ساخت نتوانست اجرای کامپایل را آغاز کند. تنظیمات GitHub را بررسی کنید."},502);}
+    }catch(e){await s3(env).send(new DeleteObjectCommand({Bucket:env.R2_BUCKET,Key:key}));await env.BUILDS.put(id,JSON.stringify({status:"failed",error:"ارسال درخواست به GitHub Actions ناموفق بود: "+e.message}),{expirationTtl:86400});return json({error:"سرویس ساخت نتوانست اجرای کامپایل را آغاز کند. تنظیمات GitHub را بررسی کنید."},502);}
     return json({buildId:id,status:"queued"},202);
    }
    if(url.pathname==="/api/callback"&&request.method==="POST"){
