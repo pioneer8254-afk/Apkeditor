@@ -1,0 +1,6 @@
+{
+  "appId": "com.pioneer.apkeditor",
+  "appName": "APK Editor",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
