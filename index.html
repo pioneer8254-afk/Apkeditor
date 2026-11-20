@@ -63,10 +63,10 @@ $('buildBtn').addEventListener('click',async()=>{
  $('buildBtn').disabled=true;$('downloadBtn').hidden=true;$('progress').style.display='block';$('progressBar').style.width='8%';
  try{
   if(!window.JSZip)throw Error('کتابخانه ZIP بارگذاری نشده؛ اتصال اینترنت را بررسی کن.');
-  say('در حال آماده‌سازی فایل پروژه...');const blob=await prepare();const form=new FormData();form.append('project',blob,'project.zip');form.append('appName',$('appName').value.trim());form.append('packageId',$('appId').value.trim());
+  say('در حال آماده‌سازی فایل پروژه...');const blob=await prepare();if(blob.size>18*1024*1024)throw Error('حجم پروژه پس از آماده‌سازی نباید بیشتر از ۱۸ مگابایت باشد.');const form=new FormData();form.append('project',blob,'project.zip');form.append('appName',$('appName').value.trim());form.append('packageId',$('appId').value.trim());
   $('progressBar').style.width='18%';say('در حال ارسال امن پروژه به سرویس ساخت...');
-  const base=window.APK_EDITOR_API||'';
-  if(!base)throw Error('سرویس ساخت هنوز پیکربندی نشده است. مدیر سرویس باید نشانی Worker را در متغیر APK_EDITOR_API قرار دهد؛ راهنما در README مخزن است.');
+  const base=window.APK_EDITOR_API||'https://apkeditor-build-api.pioneer8254.workers.dev';
+  if(!base)throw Error('نشانی سرویس ساخت پیکربندی نشده است.');
   const response=await fetch(base.replace(/\/$/,'')+'/api/build',{method:'POST',body:form});
   const data=await response.json().catch(()=>({error:'پاسخ نامعتبر از سرویس ساخت'}));
   if(!response.ok)throw Error(data.error||'ارسال پروژه ناموفق بود.');
