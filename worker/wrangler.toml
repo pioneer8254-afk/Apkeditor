@@ -8,4 +8,4 @@ bucket_name = "apkeditor-projects"
 
 [[kv_namespaces]]
 binding = "BUILDS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "c5b2a259359e4556bc42aaea44eb6533"
