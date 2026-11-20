@@ -1,0 +1,11 @@
+name = "apkeditor-build-api"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[[r2_buckets]]
+binding = "APK_PROJECTS"
+bucket_name = "apkeditor-projects"
+
+[[kv_namespaces]]
+binding = "BUILDS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
