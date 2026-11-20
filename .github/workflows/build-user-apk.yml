@@ -1,0 +1,86 @@
+name: Build user APK
+run-name: Build APK - ${{ inputs.build_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: Unique build identifier
+        required: true
+        type: string
+      source_url:
+        description: Temporary signed source archive URL
+        required: true
+        type: string
+      callback_url:
+        description: Build status callback URL
+        required: true
+        type: string
+      callback_secret:
+        description: One-time callback secret
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Download project
+        env:
+          SOURCE_URL: ${{ inputs.source_url }}
+        run: |
+          mkdir project
+          curl --fail --location --retry 3 "$SOURCE_URL" -o /tmp/project.zip
+          unzip -q /tmp/project.zip -d project
+          test -f project/package.json
+          test -f project/capacitor.config.json
+          test -f project/www/index.html
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install and prepare Android
+        working-directory: project
+        run: |
+          npm install --no-audit --no-fund
+          npx cap add android
+          if [ -f assets/icon.png ] || [ -f assets/icon.jpg ]; then
+            npx capacitor-assets generate --android
+          fi
+          npx cap sync android
+      - name: Build APK
+        working-directory: project/android
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - name: Package APK
+        if: success()
+        run: |
+          mkdir -p output
+          cp project/android/app/build/outputs/apk/debug/app-debug.apk output/app-debug.apk
+          printf 'APK Editor build: %s\n' "${{ inputs.build_id }}" > output/BUILD.txt
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-output
+          path: output/*
+          if-no-files-found: error
+          retention-days: 1
+      - name: Notify build service
+        if: always()
+        env:
+          CALLBACK_URL: ${{ inputs.callback_url }}
+          CALLBACK_SECRET: ${{ inputs.callback_secret }}
+          BUILD_ID: ${{ inputs.build_id }}
+          JOB_STATUS: ${{ job.status }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ]; then RESULT=completed; else RESULT=failed; fi
+          curl --fail --silent --show-error --retry 3 "$CALLBACK_URL" \
+            -H 'content-type: application/json' \
+            -d "{\"build_id\":\"$BUILD_ID\",\"secret\":\"$CALLBACK_SECRET\",\"status\":\"$RESULT\",\"run_id\":\"$RUN_ID\",\"error\":\"$JOB_STATUS\"}"
