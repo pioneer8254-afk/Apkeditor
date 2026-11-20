@@ -21,7 +21,7 @@ on:
         type: string
 permissions:
   contents: read
-  actions: read
+  actions: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,7 +40,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
