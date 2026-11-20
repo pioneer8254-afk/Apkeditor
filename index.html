@@ -55,7 +55,7 @@ async function prepare(){
  if(!validPackage(appId))throw Error('شناسه برنامه معتبر نیست. نمونه: com.example.myapp');
  out.file('package.json',JSON.stringify({name:'web-to-apk',version:'1.0.0',private:true,dependencies:{'@capacitor/core':'^6.2.0','@capacitor/android':'^6.2.0'},devDependencies:{'@capacitor/cli':'^6.2.0','@capacitor/assets':'^3.0.5'}},null,2));
  out.file('capacitor.config.json',JSON.stringify({appId,appName,webDir:'www',bundledWebRuntime:false},null,2));
- if(iconInput.files[0]){const icon=iconInput.files[0];if(!/^image\/(png|jpeg)$/.test(icon.type))throw Error('فرمت آیکون باید PNG یا JPG باشد.');out.file('assets/icon.'+(icon.type==='image/png'?'png':'jpg'),await icon.arrayBuffer());}
+ if(iconInput.files[0]){const icon=iconInput.files[0];if(!/^image\\/(png|jpeg)$/.test(icon.type))throw Error('فرمت آیکون باید PNG یا JPG باشد.');const bitmap=await createImageBitmap(icon);const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=1024;const ctx=canvas.getContext('2d');const scale=Math.max(1024/bitmap.width,1024/bitmap.height);const w=bitmap.width*scale,h=bitmap.height*scale;ctx.drawImage(bitmap,(1024-w)/2,(1024-h)/2,w,h);const png=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!png)throw Error('تبدیل تصویر آیکون ناموفق بود.');out.file('assets/icon.png',await png.arrayBuffer());bitmap.close();}
  return out.generateAsync({type:'blob'});
 }
 $('previewBtn').addEventListener('click',async()=>{try{say('در حال آماده‌سازی پیش‌نمایش...');let z=await prepare();let zip=await JSZip.loadAsync(z);previewHtml=await zip.file('www/index.html').async('text');$('preview').srcdoc=previewHtml;say('پیش‌نمایش آماده است.','good');}catch(e){say(e.message,'bad');}});
