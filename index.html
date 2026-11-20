@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827"><title>APK Editor | تبدیل HTML به APK</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#131e30;--line:#28364c;--muted:#9eacc0;--accent:#60a5fa;--green:#34d399}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(140deg,#0b1220,#111d32);color:#edf4ff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+main{max-width:1050px;margin:auto;padding:28px 16px 60px}.top{display:flex;align-items:center;gap:12px;margin-bottom:25px}.logo{width:48px;height:48px;border-radius:15px;background:#2563eb;display:grid;place-items:center;font-size:25px;font-weight:800}.top h1{font-size:23px;margin:0}.top p{color:var(--muted);margin:3px 0 0;font-size:13px}
+.hero{padding:25px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(130deg,#17263e,#111b2c);margin-bottom:18px}.hero h2{margin:0 0 9px;font-size:25px}.hero p{margin:0;color:#bdcbe0;line-height:1.9}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:19px;margin-bottom:16px}.panel h3{margin:0 0 15px;font-size:17px}.drop{border:1.5px dashed #526783;border-radius:15px;padding:26px 14px;text-align:center;background:#101a2b;cursor:pointer}.drop strong{display:block;margin:8px 0}.drop small,.hint{color:var(--muted);line-height:1.8}.drop input{display:none}
+label{display:block;font-size:13px;color:#c8d5e7;margin:12px 0 7px}input[type=text]{width:100%;padding:12px;border-radius:11px;border:1px solid var(--line);background:#0b1423;color:white;font:inherit;direction:ltr;text-align:left}
+button{border:0;border-radius:12px;padding:13px 17px;font:inherit;font-weight:700;cursor:pointer;background:var(--accent);color:#061426;width:100%;margin-top:12px}button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#26364e;color:#e6f0ff}.status{padding:11px 13px;background:#0c1727;border:1px solid var(--line);border-radius:11px;color:#c4d2e5;font-size:13px;line-height:1.8;margin-top:12px}.preview{width:100%;height:390px;border:1px solid var(--line);border-radius:13px;background:white}.steps{padding-right:20px;color:#c5d2e5;line-height:2}.steps li{margin:5px 0}.footer{text-align:center;color:var(--muted);font-size:12px;margin-top:22px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.hero h2{font-size:21px}.preview{height:330px}}
+</style></head>
+<body><main>
+<header class="top"><div class="logo">A</div><div><h1>APK Editor</h1><p>سازنده بسته اندروید از پروژه‌های وب</p></div></header>
+<section class="hero"><h2>وب‌سایتت را به اپلیکیشن اندروید تبدیل کن</h2><p>فایل HTML یا ZIP پروژه‌ات را انتخاب کن، پیش‌نمایش را ببین و بسته آماده ساخت APK را دریافت کن. ساخت APK نهایی با GitHub Actions انجام می‌شود.</p></section>
+<div class="grid">
+<section class="panel"><h3>۱. انتخاب پروژه</h3>
+<label class="drop" for="file"><div style="font-size:30px">📁</div><strong id="fileTitle">برای انتخاب HTML یا ZIP لمس کن</strong><small>فایل HTML تکی یا ZIP شامل فایل‌های سایت و منابع آن</small><input id="file" type="file" accept=".html,.htm,.zip,application/zip,text/html"></label>
+<label for="appName">نام برنامه</label><input id="appName" type="text" value="My Web App" maxlength="40">
+<label for="appId">شناسه برنامه (Package ID)</label><input id="appId" type="text" value="com.example.mywebapp" placeholder="com.example.myapp">
+<button id="previewBtn" class="secondary" disabled>نمایش پیش‌نمایش</button>
+<button id="downloadBtn" disabled>ساخت و دانلود بسته Android</button>
+<div id="status" class="status">هنوز فایلی انتخاب نشده است.</div>
+</section>
+<section class="panel"><h3>۲. پیش‌نمایش برنامه</h3><iframe class="preview" id="preview" title="پیش‌نمایش پروژه" sandbox="allow-scripts allow-forms allow-modals"></iframe><p class="hint">پیش‌نمایش داخل همین صفحه نمایش داده می‌شود. برخی قابلیت‌های وابسته به سرور ممکن است در پیش‌نمایش محلی کار نکنند.</p></section>
+</div>
+<section class="panel"><h3>۳. گرفتن APK</h3><ol class="steps"><li>روی «ساخت و دانلود بسته Android» بزن.</li><li>ZIP خروجی را در یک مخزن GitHub بارگذاری کن.</li><li>از تب Actions اجرای workflow را دنبال کن.</li><li>پس از پایان موفق، APK را از بخش Artifacts دانلود کن.</li></ol><p class="hint">این ابزار به‌تنهایی APK را روی گوشی کامپایل نمی‌کند؛ بسته پروژه و workflow ساخت را آماده می‌کند. برای ساخت APK به GitHub Actions نیاز است.</p></section>
+<div class="footer">APK Editor • نسخه آزمایشی ۱.۰</div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+const fileInput=document.getElementById('file'), title=document.getElementById('fileTitle'), statusBox=document.getElementById('status'), preview=document.getElementById('preview'), previewBtn=document.getElementById('previewBtn'), downloadBtn=document.getElementById('downloadBtn');
+let selected=null, zipContents=null;
+const say=t=>statusBox.textContent=t;
+fileInput.addEventListener('change',()=>{selected=fileInput.files[0]||null;zipContents=null;title.textContent=selected?selected.name:'برای انتخاب HTML یا ZIP لمس کن';previewBtn.disabled=!selected;downloadBtn.disabled=!selected;say(selected?'فایل انتخاب شد: '+selected.name:'هنوز فایلی انتخاب نشده است。');});
+async function loadProject(){if(!selected)throw Error('ابتدا یک فایل انتخاب کن.');if(/\.zip$/i.test(selected.name)){if(!window.JSZip)throw Error('کتابخانه ZIP بارگذاری نشد؛ اینترنت را بررسی کن.');zipContents=await JSZip.loadAsync(selected);let entry=Object.keys(zipContents.files).find(n=>!zipContents.files[n].dir&&/(^|\/)index\.html?$/i.test(n));if(!entry)entry=Object.keys(zipContents.files).find(n=>!zipContents.files[n].dir&&/\.html?$/i.test(n));if(!entry)throw Error('در ZIP فایل HTML پیدا نشد.');return {zip:zipContents,entry};}return {html:await selected.text()};}
+previewBtn.addEventListener('click',async()=>{try{say('در حال آماده‌سازی پیش‌نمایش...');let p=await loadProject();let html=p.html??await p.zip.file(p.entry).async('text');preview.srcdoc=html;say('پیش‌نمایش آماده است.');}catch(e){say(e.message);}});
+function safeId(v){return /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/.test(v);}
+downloadBtn.addEventListener('click',async()=>{try{if(!safeId(document.getElementById('appId').value.trim()))throw Error('شناسه برنامه معتبر نیست؛ مانند com.example.myapp وارد کن.');say('در حال ساخت بسته پروژه...');let p=await loadProject();let out=new JSZip();if(p.zip){for(const [name,item] of Object.entries(p.zip.files)){if(!item.dir)out.file('www/'+name.replace(/^.*?(?=www\/)/,'').replace(/^www\//,''),await item.async('uint8array'));}}else out.file('www/index.html',p.html);
+if(!Object.keys(out.files).some(n=>/^www\/index\.html?$/i.test(n))){let first=Object.keys(out.files).find(n=>/^www\/.*\.html?$/i.test(n));if(first){let data=out.file(first);out.file('www/index.html',await data.async('uint8array'));}}
+const appName=document.getElementById('appName').value.trim()||'My Web App', appId=document.getElementById('appId').value.trim();
+out.file('package.json',JSON.stringify({name:'web-to-apk-project',version:'1.0.0',private:true,scripts:{build:'echo Capacitor project'},dependencies:{'@capacitor/core':'^6.2.0','@capacitor/android':'^6.2.0'},devDependencies:{'@capacitor/cli':'^6.2.0'}},null,2));
+out.file('capacitor.config.json',JSON.stringify({appId,appName,webDir:'www',bundledWebRuntime:false},null,2));
+out.file('.github/workflows/build-apk.yml',workflow);
+out.file('README-FA.txt','پروژه آماده ساخت APK\n\n۱) تمام محتویات این ZIP را در مخزن GitHub خود بارگذاری کن.\n۲) به تب Actions برو و اجرای Build Android APK را باز کن.\n۳) پس از پایان موفق، در صفحه اجرا بخش Artifacts را باز کن و app-debug را دانلود کن.\n۴) فایل APK داخل ZIP دانلودشده است.\n\nبرای نصب APK، ممکن است لازم باشد اجازه نصب برنامه از منابع ناشناس را فعال کنی.');
+let blob=await out.generateAsync({type:'blob'});let url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='android-project.zip';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);say('بسته پروژه دانلود شد. آن را در یک مخزن GitHub بارگذاری کن و از تب Actions ساخت APK را اجرا کن.');}catch(e){say(e.message);}});
+const workflow=`name: Build Android APK
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'www/**'
+      - 'package.json'
+      - 'capacitor.config.json'
+      - '.github/workflows/build-apk.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install dependencies
+        run: npm install
+      - name: Add Android platform
+        run: |
+          if [ ! -d android ]; then npx cap add android; fi
+          npx cap sync android
+      - name: Build debug APK
+        working-directory: android
+        run: chmod +x gradlew && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+`;
+</script></body></html>
